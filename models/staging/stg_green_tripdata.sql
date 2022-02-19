@@ -4,7 +4,7 @@ with tripdata as
 (
   select *,
     row_number() over(partition by vendorid, lpep_pickup_datetime) as rn
-  from {{ source('staging','green_tripdata') }}
+  from {{ source('staging','green_tripdata_csv') }}
   where vendorid is not null 
 )
 select
@@ -20,7 +20,7 @@ select
     cast(lpep_dropoff_datetime as timestamp) as dropoff_datetime,
     
     -- trip info
-    store_and_fwd_flag,
+    cast(store_and_fwd_flag as string) store_and_fwd_flag,
     cast(passenger_count as integer) as passenger_count,
     cast(trip_distance as numeric) as trip_distance,
     cast(trip_type as integer) as trip_type,
@@ -42,7 +42,7 @@ where rn = 1
 
 
 -- dbt build --m <model.sql> --var 'is_test_run: false'
-{% if var('is_test_run', default=true) %}
+{% if var('is_test_run', default=false) %}
 
   limit 100
 
